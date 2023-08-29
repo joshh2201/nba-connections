@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "nba-connections"
+version = "0.1.0"
+description = "Packages for nba-connections"
+authors = ["Josh <joshh2201@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+beautifulsoup4 = "^4.12.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
