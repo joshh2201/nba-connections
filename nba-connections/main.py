@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import logging
 import requests
 import time
+import re
 
 BASE_URL = "https://www.basketball-reference.com"
 session = requests.Session()
@@ -35,6 +36,7 @@ def get_team_urls() -> dict:
     try:
         response = session.get(BASE_URL)
         response.raise_for_status()
+        api_delay()
 
         soup = BeautifulSoup(response.text, "lxml")
         team_table = soup.find("div", {"id": "teams"})
@@ -42,8 +44,6 @@ def get_team_urls() -> dict:
             for team_header in conference_table.tbody.find_all("th"):
                 team_link = team_header.a
                 team_urls[team_link.text] = BASE_URL + team_link["href"]
-
-        api_delay()
 
     except requests.HTTPError as e:
         logging.warning(f"Could not get a response from {BASE_URL}: {e}")
@@ -53,7 +53,7 @@ def get_team_urls() -> dict:
 
 def player_info_helper(table_row) -> dict:
     """
-    Parse a roster table row to extract player information such as player name, position, 
+    Parse a roster table row to extract player information such as player name, position,
     height, weight, and birthdate.
 
     Args:
@@ -91,9 +91,9 @@ def get_players(roster_table) -> list:
     return players
 
 
-def get_rosters() -> dict:
+def get_current_rosters() -> dict:
     """
-    Retrieve rosters for all NBA teams. For each team URL, the function sends an HTTP GET request
+    Retrieve most recent rosters for all NBA teams. For each team URL, the function sends an HTTP GET request
     using a session and then extracts player roster data from the corresponding table. The collected rosters
     are organized into a dictionary with team shorthand as keys and a list of player information as values.
 
@@ -104,13 +104,50 @@ def get_rosters() -> dict:
     rosters = {}
     team_urls = get_team_urls()
     for team in team_urls:
-        print(team, team_urls[team])
         response = session.get(team_urls[team])
+        api_delay()
         soup = BeautifulSoup(response.text, "lxml")
         roster_table = soup.find("table", {"id": "roster"}).tbody
         rosters[team] = get_players(roster_table)
-        api_delay()
+
     return rosters
 
 
-print(get_rosters())
+def get_historic_rosters():
+    """
+    Retrieve historic rosters for all NBA teams. For each team URL, the function sends an HTTP GET request
+    using a session and then extracts player roster data from the corresponding table. The collected rosters
+    are organized into a dictionary with team shorthand as keys and a list of player information as values.
+
+    Returns:
+        dict(dict: list): A dictionary mapping team shorthand to a dictionary mapping season to a list of players.
+
+    """
+    rosters = {}
+    team_urls = get_team_urls()
+    for team in team_urls:
+        current_url = team_urls[team]
+        historic_rosters = {}
+        while True:
+            response = session.get(current_url)
+            api_delay()
+            # parse the year out of the url
+            year = int(re.search(r"\d{4}", current_url).group(0))
+
+            soup = BeautifulSoup(response.text, "lxml")
+            roster_table = soup.find("table", {"id": "roster"}).tbody
+            historic_rosters[year] = get_players(roster_table)
+            
+            # check for previous season and update current_url
+            prev_season_endpoint = f"/teams/{team}/{year - 1}.html"
+            if soup.find("a", {"href": prev_season_endpoint}):
+                current_url = BASE_URL + prev_season_endpoint
+            else:
+                break
+
+        rosters[team] = historic_rosters
+
+    return rosters
+
+
+print(get_historic_rosters())
