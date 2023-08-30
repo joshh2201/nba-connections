@@ -9,17 +9,12 @@ session = requests.Session()
 
 def api_delay() -> None:
     """
-    Introduces a time delay to mitigate rate limit constraints during API calls.
+    Introduces a 3.1 time delay to mitigate rate limit constraints during API calls. This delay is implemented
+    to ensure compliance with the rate limit, which permits a maximum of 20 calls per minute.
 
     Returns:
         None
 
-    To prevent exceeding the API rate limit, this function enforces a delay of 3.1 seconds between consecutive calls.
-    This delay is implemented to ensure compliance with the rate limit, which permits a maximum of 20 calls per minute.
-
-    Notes:
-        The delay duration of 3.1 seconds has been determined to maintain adherence to the specified rate limit.
-        Developers should review and adjust this delay as necessary based on the API's rate limit policy.
     """
     Logger.info("Sleeping for 3.1 seconds to avoid rate limit")
     time.sleep(3.1)
@@ -27,15 +22,14 @@ def api_delay() -> None:
 
 def get_team_urls() -> dict:
     """
-    Retrieve links to the most recent team rosters by parsing the home page of Basketball Reference.
+    Retrieve links to the most recent team rosters by parsing the home page of Basketball Reference as a dictionary.
+    Each team's shorthand (e.g., 'LAL' for Los Angeles Lakers) is used as a key, and the associated roster link
+    is stored as the value. It handles potential HTTP errors and ensures an API delay between
+    requests to avoid overloading the server.
 
     Returns:
         dict: A dictionary containing team shorthand as keys and corresponding roster links as values.
 
-    The function fetches team URLs from the home page of Basketball Reference and organizes them into a dictionary.
-    Each team's shorthand (e.g., 'LAL' for Los Angeles Lakers) is used as a key, and the associated roster link
-    is stored as the value. The function gracefully handles potential HTTP errors and ensures an API delay between
-    requests to avoid overloading the server.
     """
     team_urls = {}
     try:
@@ -59,17 +53,14 @@ def get_team_urls() -> dict:
 
 def player_info_helper(table_row) -> dict:
     """
-    Parse a roster table row to extract player information.
+    Parse a roster table row to extract player information such as player name, position, 
+    height, weight, and birthdate.
 
     Args:
         table_row (bs4.element.Tag): The BeautifulSoup Tag representing a row in the roster table.
 
     Returns:
         dict: A dictionary containing extracted player information.
-
-    The function accepts a BeautifulSoup Tag representing a table row from a roster table. It then extracts specific
-    data points from the row, such as player name, position, height, weight, and birthdate, returning the data as 
-    a dictionary.
 
     """
     return dict(
@@ -83,17 +74,15 @@ def player_info_helper(table_row) -> dict:
 
 def get_players(roster_table) -> list:
     """
-    Iterate through the rows of a roster table to retrieve player data.
+    Iterate through the rows of a roster table to retrieve player data. The player data for each roster is
+    returned as a list where each element is a dictionary representing a player.
+
 
     Args:
         roster_table (bs4.element.Tag): The BeautifulSoup Tag representing the roster table.
 
     Returns:
         list: A list of dictionaries containing extracted player information.
-
-    The function accepts a BeautifulSoup Tag representing a roster table. It then iterates over the rows in the
-    table and calls the `player_info_helper()` function on each row to retrieve player data. The player data for each roster is
-    returned as a list where each element is a dictionary representing a player.
 
     """
     players = []
@@ -104,19 +93,12 @@ def get_players(roster_table) -> list:
 
 def get_rosters() -> dict:
     """
-     Retrieve rosters for all NBA teams.
+    Retrieve rosters for all NBA teams. For each team URL, the function sends an HTTP GET request
+    using a session and then extracts player roster data from the corresponding table. The collected rosters
+    are organized into a dictionary with team shorthand as keys and a list of player information as values.
 
     Returns:
         dict: A dictionary mapping team shorthand to player rosters.
-
-    This function fetches and compiles team rosters by iterating through a collection of team URLs. It uses the
-    `get_team_urls()` function to obtain the required URLs. For each team URL, the function sends an HTTP GET request
-    using a session and then extracts player roster data from the corresponding table. The collected rosters are
-    organized into a dictionary with team shorthand as keys and player information as values.
-
-    Notes:
-        The function makes use of the `get_team_urls()` and `get_players()` functions to retrieve the necessary data.
-        Additionally, it employs the `api_delay()` function to prevent potential rate limit issues during API calls.
 
     """
     rosters = {}
