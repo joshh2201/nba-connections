@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.9"
 beautifulsoup4 = "^4.12.2"
+lxml = "^4.9.3"
+requests = "^2.31.0"
 
 
 [build-system]
