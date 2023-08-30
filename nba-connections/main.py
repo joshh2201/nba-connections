@@ -3,9 +3,9 @@ from logging import Logger
 import requests
 
 BASE_URL = "https://www.basketball-reference.com"
+session = requests.Session()
 
-
-def get_team_url():
+def get_team_urls():
     """
     Parse the home page of basketball reference to get links to
     most recent team rosters.
@@ -14,7 +14,7 @@ def get_team_url():
     """
     team_urls = {}
     try:
-        response = requests.get(BASE_URL)
+        response = session.get(BASE_URL)
     except HTTPError as e:
         Logger.warning(f"Could not get a response from {BASE_URL}: {e}")
     soup = BeautifulSoup(response.text, "lxml")
@@ -26,4 +26,4 @@ def get_team_url():
     return team_urls
 
 
-get_team_links()
+print(get_team_urls())
