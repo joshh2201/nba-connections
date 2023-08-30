@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from logging import Logger
+import logging
 import requests
 import time
 
@@ -16,7 +16,7 @@ def api_delay() -> None:
         None
 
     """
-    Logger.info("Sleeping for 3.1 seconds to avoid rate limit")
+    logging.info("Sleeping for 3.1 seconds to avoid rate limit")
     time.sleep(3.1)
 
 
@@ -46,7 +46,7 @@ def get_team_urls() -> dict:
         api_delay()
 
     except requests.HTTPError as e:
-        Logger.warning(f"Could not get a response from {BASE_URL}: {e}")
+        logging.warning(f"Could not get a response from {BASE_URL}: {e}")
 
     return team_urls
 
